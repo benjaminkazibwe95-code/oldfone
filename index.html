@@ -4,448 +4,393 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>OldFone — WhatsApp on Any Phone in Uganda</title>
-<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --ink: #0e1a0f;
-  --paper: #f5f0e8;
-  --leaf: #2d6a35;
-  --leaf-light: #4a9955;
-  --leaf-pale: #e8f2e9;
-  --gold: #c8923a;
-  --gold-pale: #fdf3e3;
-  --muted: #6b7c6e;
-  --border: #d4cfc4;
-  --white: #ffffff;
-  --danger: #c0392b;
-}
+:root{--ink:#0e1a0f;--paper:#f5f0e8;--leaf:#2d6a35;--leaf-light:#4a9955;--leaf-pale:#e8f2e9;--gold:#c8923a;--gold-pale:#fdf3e3;--muted:#6b7c6e;--border:#d4cfc4;--white:#ffffff;--danger:#c0392b}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:'Familjen Grotesk',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden}
 
-/* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,0.92);backdrop-filter:blur(16px);border-bottom:1.5px solid var(--border);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-size:1.35rem;font-weight:700;letter-spacing:-0.5px;color:var(--ink)}
-.logo span{color:var(--leaf)}
-.nav-right{display:flex;gap:10px;align-items:center}
-.btn-nav-login{background:transparent;border:1.5px solid var(--border);color:var(--ink);font-size:0.82rem;font-weight:600;padding:7px 16px;border-radius:100px;cursor:pointer;font-family:inherit;transition:all 0.2s}
-.btn-nav-login:hover{border-color:var(--leaf);color:var(--leaf)}
-.btn-nav-signup{background:var(--leaf);border:none;color:var(--white);font-size:0.82rem;font-weight:700;padding:8px 18px;border-radius:100px;cursor:pointer;font-family:inherit;transition:all 0.2s}
-.btn-nav-signup:hover{background:var(--leaf-light);transform:scale(1.03)}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,0.95);border-bottom:1.5px solid var(--border);padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.3rem;font-weight:700;color:var(--ink)}.logo span{color:var(--leaf)}
+.nav-btns{display:flex;gap:8px}
+.btn-nav-in{background:transparent;border:1.5px solid var(--border);color:var(--ink);font-size:0.8rem;font-weight:600;padding:7px 14px;border-radius:100px;cursor:pointer;font-family:inherit}
+.btn-nav-up{background:var(--leaf);border:none;color:#fff;font-size:0.8rem;font-weight:700;padding:8px 16px;border-radius:100px;cursor:pointer;font-family:inherit}
 
-/* ── HERO ── */
-.hero{padding:120px 20px 60px;max-width:680px;margin:0 auto;text-align:center}
-.hero-kicker{display:inline-flex;align-items:center;gap:8px;background:var(--leaf-pale);border:1.5px solid #b8d8bb;border-radius:100px;padding:5px 14px 5px 8px;font-size:0.73rem;font-weight:600;color:var(--leaf);margin-bottom:24px;animation:rise 0.5s ease both}
-.kicker-flag{font-size:16px}
-h1{font-size:clamp(2.2rem,8vw,3.8rem);font-weight:700;line-height:1.08;letter-spacing:-1.5px;color:var(--ink);animation:rise 0.5s 0.08s ease both}
+.hero{padding:100px 16px 48px;max-width:640px;margin:0 auto;text-align:center}
+.kicker{display:inline-flex;align-items:center;gap:6px;background:var(--leaf-pale);border:1.5px solid #b8d8bb;border-radius:100px;padding:5px 14px;font-size:0.73rem;font-weight:600;color:var(--leaf);margin-bottom:20px}
+h1{font-size:clamp(2rem,8vw,3.4rem);font-weight:700;line-height:1.08;letter-spacing:-1px;color:var(--ink)}
 h1 mark{background:none;color:var(--leaf)}
-.hero-sub{margin-top:18px;font-size:clamp(1rem,3vw,1.15rem);color:var(--muted);line-height:1.65;max-width:500px;margin-left:auto;margin-right:auto;animation:rise 0.5s 0.16s ease both}
-.hero-actions{margin-top:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:rise 0.5s 0.24s ease both}
-.btn-primary{background:var(--leaf);color:var(--white);font-family:inherit;font-weight:700;font-size:1rem;padding:14px 28px;border-radius:14px;border:none;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px}
-.btn-primary:hover{background:var(--leaf-light);transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,106,53,0.25)}
-.btn-secondary{background:transparent;color:var(--ink);font-family:inherit;font-weight:600;font-size:1rem;padding:14px 28px;border-radius:14px;border:1.5px solid var(--border);cursor:pointer;transition:all 0.2s}
-.btn-secondary:hover{border-color:var(--leaf);color:var(--leaf)}
+.sub{margin-top:16px;font-size:clamp(0.95rem,3vw,1.1rem);color:var(--muted);line-height:1.65;max-width:480px;margin-left:auto;margin-right:auto}
+.hero-btns{margin-top:28px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-p{background:var(--leaf);color:#fff;font-family:inherit;font-weight:700;font-size:0.95rem;padding:13px 24px;border-radius:14px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-s{background:transparent;color:var(--ink);font-family:inherit;font-weight:600;font-size:0.95rem;padding:13px 24px;border-radius:14px;border:1.5px solid var(--border);cursor:pointer}
 
-/* phone mock */
-.phone-wrap{margin-top:52px;display:flex;justify-content:center;animation:rise 0.6s 0.32s ease both}
-.phone{width:220px;background:var(--ink);border-radius:32px;padding:12px;box-shadow:0 32px 64px rgba(14,26,15,0.22),0 4px 12px rgba(14,26,15,0.1);position:relative}
-.phone-screen{background:#111;border-radius:22px;overflow:hidden}
-.phone-bar{background:#1a2b1b;padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06)}
-.ph-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#4a9955,#2d6a35);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
-.ph-info{flex:1}
-.ph-name{font-size:0.62rem;font-weight:600;color:#e8f2e9}
-.ph-online{font-size:0.5rem;color:#4a9955}
-.ph-msgs{padding:10px 8px;display:flex;flex-direction:column;gap:6px;min-height:160px}
-.bbl{padding:7px 9px;border-radius:10px;font-size:0.58rem;line-height:1.4;max-width:82%}
-.bbl-in{background:#1e2e1f;color:#c8e6c9;border-bottom-left-radius:3px}
-.bbl-out{background:#2d6a35;color:#e8f2e9;align-self:flex-end;border-bottom-right-radius:3px}
-.bbl-t{font-size:0.44rem;color:rgba(255,255,255,0.35);margin-top:2px;text-align:right}
-.ph-inp{background:#0e1a0f;padding:6px 8px;display:flex;align-items:center;gap:5px}
-.ph-field{flex:1;background:#1a2b1b;border-radius:15px;padding:5px 10px;font-size:0.55rem;color:#6b7c6e}
-.ph-send{width:24px;height:24px;border-radius:50%;background:#2d6a35;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.phone-wrap{margin-top:44px;display:flex;justify-content:center}
+.phone{width:200px;background:var(--ink);border-radius:28px;padding:10px;box-shadow:0 28px 56px rgba(14,26,15,0.2)}
+.pscr{background:#111;border-radius:20px;overflow:hidden}
+.pbar{background:#1a2b1b;padding:8px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.pav{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#4a9955,#2d6a35);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.pname{font-size:0.6rem;font-weight:600;color:#e8f2e9}
+.ponline{font-size:0.48rem;color:#4a9955}
+.pmsgs{padding:8px;display:flex;flex-direction:column;gap:5px;min-height:140px}
+.b{padding:6px 8px;border-radius:9px;font-size:0.56rem;line-height:1.4;max-width:82%}
+.bi{background:#1e2e1f;color:#c8e6c9;border-bottom-left-radius:2px}
+.bo{background:#2d6a35;color:#e8f2e9;align-self:flex-end;border-bottom-right-radius:2px}
+.bt{font-size:0.42rem;color:rgba(255,255,255,0.3);margin-top:2px;text-align:right}
+.pinp{background:#0e1a0f;padding:6px 7px;display:flex;align-items:center;gap:4px}
+.pf{flex:1;background:#1a2b1b;border-radius:12px;padding:4px 8px;font-size:0.52rem;color:#6b7c6e}
+.ps{width:22px;height:22px;border-radius:50%;background:#2d6a35;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
 
-/* ── TRUST STRIP ── */
-.trust{background:var(--white);border-top:1.5px solid var(--border);border-bottom:1.5px solid var(--border);padding:14px 20px;display:flex;justify-content:center;flex-wrap:wrap;gap:20px}
-.trust-item{font-size:0.78rem;color:var(--muted);display:flex;align-items:center;gap:6px;font-weight:500}
-.trust-item span{color:var(--leaf);font-weight:700}
+.trust{background:var(--white);border-top:1.5px solid var(--border);border-bottom:1.5px solid var(--border);padding:12px 16px;display:flex;justify-content:center;flex-wrap:wrap;gap:14px}
+.ti{font-size:0.76rem;color:var(--muted);display:flex;align-items:center;gap:5px;font-weight:500}
+.ti span{color:var(--leaf);font-weight:700}
 
-/* ── SECTIONS ── */
-.section{padding:72px 20px;max-width:860px;margin:0 auto}
-.sec-label{font-family:'Spline Sans Mono',monospace;font-size:0.68rem;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
-.sec-title{font-size:clamp(1.7rem,5vw,2.5rem);font-weight:700;letter-spacing:-1px;color:var(--ink);margin-bottom:40px;line-height:1.15}
+.section{padding:60px 16px;max-width:820px;margin:0 auto}
+.slabel{font-size:0.68rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.stitle{font-size:clamp(1.6rem,5vw,2.3rem);font-weight:700;letter-spacing:-0.5px;color:var(--ink);margin-bottom:36px;line-height:1.15}
 
-/* features */
-.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
-.feat{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:24px;transition:all 0.25s}
-.feat:hover{border-color:#b8d8bb;box-shadow:0 6px 24px rgba(45,106,53,0.08);transform:translateY(-3px)}
-.feat-ico{font-size:28px;margin-bottom:14px}
-.feat-title{font-size:0.95rem;font-weight:700;color:var(--ink);margin-bottom:6px}
-.feat-desc{font-size:0.82rem;color:var(--muted);line-height:1.6}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.feat{background:var(--white);border:1.5px solid var(--border);border-radius:18px;padding:22px}
+.fico{font-size:26px;margin-bottom:12px}
+.ftitle{font-size:0.93rem;font-weight:700;color:var(--ink);margin-bottom:5px}
+.fdesc{font-size:0.8rem;color:var(--muted);line-height:1.6}
 
-/* steps */
-.steps{display:flex;flex-direction:column;gap:0}
-.step{display:flex;gap:18px;position:relative}
-.step:not(:last-child)::after{content:'';position:absolute;left:18px;top:42px;width:1.5px;height:calc(100% - 4px);background:linear-gradient(to bottom,var(--border),transparent)}
-.step-n{width:38px;height:38px;border-radius:50%;background:var(--leaf-pale);border:1.5px solid #b8d8bb;display:flex;align-items:center;justify-content:center;font-family:'Spline Sans Mono',monospace;font-weight:500;font-size:0.85rem;color:var(--leaf);flex-shrink:0;margin-bottom:36px}
-.step-body{padding-top:6px}
-.step-title{font-size:0.97rem;font-weight:700;color:var(--ink);margin-bottom:5px}
-.step-desc{font-size:0.83rem;color:var(--muted);line-height:1.6}
+.steps{display:flex;flex-direction:column}
+.step{display:flex;gap:16px;position:relative}
+.step:not(:last-child)::after{content:'';position:absolute;left:17px;top:40px;width:1.5px;height:calc(100%);background:linear-gradient(to bottom,var(--border),transparent)}
+.sn{width:36px;height:36px;border-radius:50%;background:var(--leaf-pale);border:1.5px solid #b8d8bb;display:flex;align-items:center;justify-content:center;font-size:0.82rem;font-weight:700;color:var(--leaf);flex-shrink:0;margin-bottom:32px}
+.sbody{padding-top:4px}
+.stept{font-size:0.94rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.stepd{font-size:0.8rem;color:var(--muted);line-height:1.6}
 
-/* pricing */
-.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
-.plan{background:var(--white);border:1.5px solid var(--border);border-radius:24px;padding:28px 22px;position:relative;transition:all 0.25s}
-.plan.best{border-color:var(--leaf);background:linear-gradient(160deg,var(--leaf-pale) 0%,var(--white) 100%)}
-.plan:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(14,26,15,0.1)}
-.plan-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--leaf);color:#fff;font-size:0.62rem;font-weight:700;padding:3px 12px;border-radius:100px;letter-spacing:0.5px;white-space:nowrap}
-.plan-name{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:4px}
-.plan-price{font-size:2rem;font-weight:700;color:var(--leaf);line-height:1;margin:8px 0}
-.plan-price sub{font-size:0.75rem;font-weight:400;color:var(--muted)}
-.plan-desc{font-size:0.78rem;color:var(--muted);margin-bottom:18px;line-height:1.5}
-.plan-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
-.plan-list li{font-size:0.8rem;color:var(--ink);display:flex;align-items:flex-start;gap:8px}
-.plan-list li::before{content:'✓';color:var(--leaf);font-weight:700;flex-shrink:0;margin-top:1px}
-.plan-list li.no{color:var(--muted)}
-.plan-list li.no::before{content:'–';color:var(--border)}
-.plan-btn{width:100%;padding:12px;border-radius:12px;font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;border:none;transition:all 0.2s}
-.plan-btn-green{background:var(--leaf);color:#fff}
-.plan-btn-green:hover{background:var(--leaf-light)}
-.plan-btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--border)}
-.plan-btn-outline:hover{border-color:var(--leaf);color:var(--leaf)}
+.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.plan{background:var(--white);border:1.5px solid var(--border);border-radius:22px;padding:24px 20px;position:relative}
+.plan.best{border-color:var(--leaf);background:linear-gradient(160deg,var(--leaf-pale),var(--white))}
+.ptag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--leaf);color:#fff;font-size:0.6rem;font-weight:700;padding:3px 10px;border-radius:100px;white-space:nowrap}
+.pname{font-size:0.95rem;font-weight:700;color:var(--ink);margin-bottom:2px}
+.pprice{font-size:1.9rem;font-weight:700;color:var(--leaf);line-height:1;margin:6px 0}
+.pprice sub{font-size:0.72rem;font-weight:400;color:var(--muted)}
+.pdesc{font-size:0.76rem;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.plist{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:20px}
+.plist li{font-size:0.78rem;color:var(--ink);display:flex;align-items:flex-start;gap:7px}
+.plist li::before{content:'✓';color:var(--leaf);font-weight:700;flex-shrink:0}
+.plist li.no{color:var(--muted)}.plist li.no::before{content:'–';color:var(--border)}
+.pbtn{width:100%;padding:11px;border-radius:11px;font-family:inherit;font-size:0.83rem;font-weight:700;cursor:pointer;border:none}
+.pbtn-g{background:var(--leaf);color:#fff}
+.pbtn-o{background:transparent;color:var(--ink);border:1.5px solid var(--border)}
 
-/* payment banner */
-.momo-banner{background:var(--gold-pale);border:1.5px solid #e8c47a;border-radius:20px;padding:24px;margin-top:48px;display:flex;align-items:flex-start;gap:16px}
-.momo-icon{font-size:36px;flex-shrink:0}
-.momo-title{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:4px}
-.momo-desc{font-size:0.82rem;color:var(--muted);line-height:1.6}
-.momo-numbers{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
-.momo-tag{background:var(--white);border:1.5px solid #e8c47a;border-radius:8px;padding:4px 12px;font-family:'Spline Sans Mono',monospace;font-size:0.75rem;color:var(--gold);font-weight:500}
+.momo-box{background:var(--gold-pale);border:1.5px solid #e8c47a;border-radius:18px;padding:20px;margin-top:40px;display:flex;align-items:flex-start;gap:14px}
+.mico{font-size:32px;flex-shrink:0}
+.mtt{font-size:0.95rem;font-weight:700;color:var(--ink);margin-bottom:3px}
+.mds{font-size:0.8rem;color:var(--muted);line-height:1.6}
+.mnums{margin-top:8px;display:flex;flex-wrap:wrap;gap:7px}
+.mtag{background:var(--white);border:1.5px solid #e8c47a;border-radius:7px;padding:3px 10px;font-size:0.72rem;color:var(--gold);font-weight:600;font-family:monospace}
 
-/* footer */
-footer{border-top:1.5px solid var(--border);padding:28px 20px;text-align:center;font-size:0.78rem;color:var(--muted);background:var(--white)}
+footer{border-top:1.5px solid var(--border);padding:24px 16px;text-align:center;font-size:0.76rem;color:var(--muted);background:var(--white)}
 footer strong{color:var(--leaf)}
 
-/* ── MODALS ── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(14,26,15,0.55);backdrop-filter:blur(8px);z-index:200;align-items:center;justify-content:center;padding:20px}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(14,26,15,0.6);z-index:200;align-items:center;justify-content:center;padding:16px}
 .overlay.open{display:flex}
-.modal{background:var(--paper);border:1.5px solid var(--border);border-radius:28px;padding:32px 24px;width:100%;max-width:400px;position:relative;animation:popIn 0.28s ease;max-height:92vh;overflow-y:auto}
-@keyframes popIn{from{opacity:0;transform:scale(0.95) translateY(8px)}}
-.modal-x{position:absolute;top:16px;right:16px;background:var(--white);border:1.5px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all 0.2s;border:none}
-.modal-x:hover{color:var(--danger)}
-.modal-title{font-size:1.45rem;font-weight:700;letter-spacing:-0.5px;color:var(--ink);margin-bottom:4px}
-.modal-sub{font-size:0.83rem;color:var(--muted);margin-bottom:22px}
-.field{margin-bottom:14px}
-.label{display:block;font-size:0.72rem;font-weight:600;color:var(--muted);margin-bottom:5px;letter-spacing:0.3px;text-transform:uppercase}
-.input{width:100%;background:var(--white);border:1.5px solid var(--border);border-radius:11px;padding:11px 14px;font-size:0.9rem;color:var(--ink);font-family:inherit;outline:none;transition:border-color 0.2s}
-.input:focus{border-color:var(--leaf);box-shadow:0 0 0 3px rgba(45,106,53,0.09)}
-select.input{cursor:pointer}
-.submit{width:100%;background:var(--leaf);color:#fff;font-family:inherit;font-weight:700;font-size:0.95rem;padding:13px;border-radius:12px;border:none;cursor:pointer;transition:all 0.2s;margin-top:4px}
-.submit:hover{background:var(--leaf-light)}
-.submit:disabled{opacity:0.6;cursor:not-allowed}
-.err{background:#fdecea;border:1px solid #f5c6c2;color:var(--danger);border-radius:9px;padding:9px 12px;font-size:0.8rem;margin-bottom:12px;display:none}
-.ok-msg{background:var(--leaf-pale);border:1.5px solid #b8d8bb;color:var(--leaf);border-radius:9px;padding:10px 12px;font-size:0.82rem;margin-bottom:12px;display:none}
-.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:0.75rem;margin:14px 0}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.link-btn{background:transparent;border:none;color:var(--leaf);font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
+.modal{background:var(--paper);border:1.5px solid var(--border);border-radius:24px;padding:28px 20px;width:100%;max-width:380px;position:relative;max-height:90vh;overflow-y:auto}
+.mx{position:absolute;top:14px;right:14px;background:var(--white);border:1.5px solid var(--border);color:var(--muted);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;border:none;line-height:1}
+.mtitle{font-size:1.35rem;font-weight:700;letter-spacing:-0.3px;color:var(--ink);margin-bottom:4px}
+.msub{font-size:0.8rem;color:var(--muted);margin-bottom:20px}
+.tabs{display:flex;gap:0;background:var(--white);border:1.5px solid var(--border);border-radius:9px;padding:3px;margin-bottom:18px}
+.tab{flex:1;padding:7px;border-radius:7px;font-family:inherit;font-size:0.8rem;font-weight:600;border:none;cursor:pointer;color:var(--muted);background:transparent}
+.tab.on{background:var(--leaf);color:#fff}
+.field{margin-bottom:12px}
+.lbl{display:block;font-size:0.7rem;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px}
+.inp{width:100%;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:0.88rem;color:var(--ink);font-family:inherit;outline:none}
+.inp:focus{border-color:var(--leaf)}
+.sub-btn{width:100%;background:var(--leaf);color:#fff;font-family:inherit;font-weight:700;font-size:0.92rem;padding:12px;border-radius:11px;border:none;cursor:pointer;margin-top:4px}
+.sub-btn:disabled{opacity:0.55;cursor:not-allowed}
+.errmsg{background:#fdecea;border:1px solid #f5c6c2;color:var(--danger);border-radius:8px;padding:8px 11px;font-size:0.78rem;margin-bottom:10px;display:none}
+.okmsg{background:var(--leaf-pale);border:1.5px solid #b8d8bb;color:var(--leaf);border-radius:8px;padding:9px 11px;font-size:0.79rem;margin-bottom:10px;display:none}
+.divl{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:0.73rem;margin:12px 0}
+.divl::before,.divl::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* tab row */
-.tabs{display:flex;gap:0;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:3px;margin-bottom:20px}
-.tab{flex:1;padding:8px;border-radius:8px;font-family:inherit;font-size:0.82rem;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;color:var(--muted);background:transparent}
-.tab.active{background:var(--leaf);color:#fff}
-
-/* qr box */
-.qr-wrap{text-align:center;padding:16px 0}
-.qr-img{width:160px;height:160px;border-radius:12px;border:2px solid var(--border);object-fit:contain;background:#fff}
-.qr-spin{width:160px;height:160px;border-radius:12px;border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:0.75rem;color:var(--muted);background:var(--white)}
-.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--leaf);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:100px;font-size:0.75rem;font-weight:600;margin-top:10px}
-.s-pending{background:#fdf3e3;color:var(--gold);border:1px solid #e8c47a}
-.s-connected{background:var(--leaf-pale);color:var(--leaf);border:1px solid #b8d8bb}
-.s-disconnected{background:#fdecea;color:var(--danger);border:1px solid #f5c6c2}
-.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 1.8s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-
-/* animations */
-@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-
-/* mobile */
-@media(max-width:480px){.hero-actions{flex-direction:column;align-items:stretch}.btn-primary,.btn-secondary{justify-content:center}}
+@media(max-width:440px){.hero-btns{flex-direction:column;align-items:stretch}.btn-p,.btn-s{text-align:center;justify-content:center}}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <div class="logo">Old<span>Fone</span></div>
-  <div class="nav-right">
-    <button class="btn-nav-login" onclick="openModal('login')">Sign In</button>
-    <button class="btn-nav-signup" onclick="openModal('register')">Get Started</button>
+  <div class="nav-btns">
+    <button class="btn-nav-in" onclick="openModal('login')">Sign In</button>
+    <button class="btn-nav-up" onclick="openModal('register')">Get Started</button>
   </div>
 </nav>
 
-<!-- HERO -->
 <div class="hero">
-  <div class="hero-kicker">
-    <span class="kicker-flag">🇺🇬</span>
-    Made for Uganda — works on any old phone
-  </div>
+  <div class="kicker">🇺🇬 Made for Uganda — any old phone</div>
   <h1>WhatsApp on <mark>any</mark> phone.<br>Just a browser link.</h1>
-  <p class="hero-sub">Your old iPhone, Nokia, or Android that can't install WhatsApp anymore? OldFone keeps you connected — one link, open in any browser, always logged in.</p>
-  <div class="hero-actions">
-    <button class="btn-primary" onclick="openModal('register')">🔗 Get My Free Link</button>
-    <button class="btn-secondary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How it works ↓</button>
+  <p class="sub">Old iPhone, Nokia, or Android that can't install WhatsApp? OldFone keeps you connected — one link, open in any browser, always logged in.</p>
+  <div class="hero-btns">
+    <button class="btn-p" onclick="openModal('register')">🔗 Get My Free Link</button>
+    <button class="btn-s" onclick="document.getElementById('how').scrollIntoView()">How it works ↓</button>
   </div>
-
   <div class="phone-wrap">
     <div class="phone">
-      <div class="phone-screen">
-        <div class="phone-bar">
-          <div class="ph-av">A</div>
-          <div class="ph-info">
-            <div class="ph-name">Aunty Rose 💚</div>
-            <div class="ph-online">● online</div>
-          </div>
+      <div class="pscr">
+        <div class="pbar">
+          <div class="pav">A</div>
+          <div><div class="pname">Aunty Rose 💚</div><div class="ponline">● online</div></div>
         </div>
-        <div class="ph-msgs">
-          <div class="bbl bbl-in">Webale! OldFone is amazing 🙏<div class="bbl-t">9:41 AM</div></div>
-          <div class="bbl bbl-out">Works on your old Nokia?<div class="bbl-t">9:42 AM</div></div>
-          <div class="bbl bbl-in">Yes!! Just opened the link!<div class="bbl-t">9:42 AM</div></div>
-          <div class="bbl bbl-out">No app needed 🎉<div class="bbl-t">9:43 AM</div></div>
-          <div class="bbl bbl-in">🥹❤️ 7,000 UGX only?<div class="bbl-t">9:43 AM</div></div>
+        <div class="pmsgs">
+          <div class="b bi">Webale! OldFone is amazing 🙏<div class="bt">9:41 AM</div></div>
+          <div class="b bo">Works on your old Nokia?<div class="bt">9:42 AM</div></div>
+          <div class="b bi">Yes!! Just opened the link!<div class="bt">9:42 AM</div></div>
+          <div class="b bo">No app needed 🎉<div class="bt">9:43 AM</div></div>
+          <div class="b bi">7,000 UGX only? 🥹❤️<div class="bt">9:43 AM</div></div>
         </div>
-        <div class="ph-inp">
-          <div class="ph-field">Message...</div>
-          <div class="ph-send">➤</div>
-        </div>
+        <div class="pinp"><div class="pf">Message...</div><div class="ps">➤</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- TRUST STRIP -->
 <div class="trust">
-  <div class="trust-item">📱 <span>Works</span> on iOS 9+, old Android</div>
-  <div class="trust-item">💳 <span>Pay</span> with MTN MoMo or Airtel Money</div>
-  <div class="trust-item">⚡ <span>Active</span> within 1 hour of payment</div>
-  <div class="trust-item">🔒 <span>Your</span> session, encrypted</div>
+  <div class="ti">📱 <span>Works</span> on iOS 9+, old Android</div>
+  <div class="ti">💳 <span>Pay</span> with MTN MoMo or Airtel</div>
+  <div class="ti">⚡ <span>Active</span> within 1 hour</div>
+  <div class="ti">🔒 <span>Encrypted</span> session</div>
 </div>
 
-<!-- FEATURES -->
 <div class="section">
-  <div class="sec-label">Why OldFone</div>
-  <div class="sec-title">Built for real life<br>in Uganda</div>
+  <div class="slabel">Why OldFone</div>
+  <div class="stitle">Built for real life in Uganda</div>
   <div class="feat-grid">
-    <div class="feat"><div class="feat-ico">🔗</div><div class="feat-title">One Link Forever</div><div class="feat-desc">Get a personal URL. Bookmark it. Open it on any browser — old iPhone, Nokia, Tecno — you're in WhatsApp instantly.</div></div>
-    <div class="feat"><div class="feat-ico">📵</div><div class="feat-title">No App Download</div><div class="feat-desc">Zero storage used on the phone. Zero installs. If the phone can open a webpage, OldFone works on it.</div></div>
-    <div class="feat"><div class="feat-ico">⚡</div><div class="feat-title">Fast on Slow Data</div><div class="feat-desc">Our lite chat UI is 10× lighter than WhatsApp Web. Built for Uganda's internet — works even on 2G/edge.</div></div>
-    <div class="feat"><div class="feat-ico">💰</div><div class="feat-title">Only 7,000 UGX/mo</div><div class="feat-desc">Less than a chapati a day. Pay with MTN MoMo or Airtel Money — no card needed, no bank account.</div></div>
-    <div class="feat"><div class="feat-ico">🔒</div><div class="feat-title">Your Session, Safe</div><div class="feat-desc">Your WhatsApp session is encrypted and stored only on our server. We never read your messages.</div></div>
-    <div class="feat"><div class="feat-ico">♻️</div><div class="feat-title">Always Connected</div><div class="feat-desc">Our server keeps your WhatsApp alive 24/7. You don't lose your session when you close the browser.</div></div>
+    <div class="feat"><div class="fico">🔗</div><div class="ftitle">One Link Forever</div><div class="fdesc">Bookmark your URL. Open it on any browser — old iPhone, Nokia, Tecno — you're in WhatsApp instantly.</div></div>
+    <div class="feat"><div class="fico">📵</div><div class="ftitle">No App Download</div><div class="fdesc">Zero storage used. If the phone can load a webpage, OldFone works on it.</div></div>
+    <div class="feat"><div class="fico">⚡</div><div class="ftitle">Fast on Slow Data</div><div class="fdesc">Our lite chat UI is 10× lighter than WhatsApp Web. Built for Uganda — works even on 2G.</div></div>
+    <div class="feat"><div class="fico">💰</div><div class="ftitle">Only 7,000 UGX/mo</div><div class="fdesc">Pay with MTN MoMo or Airtel Money — no card, no bank needed.</div></div>
+    <div class="feat"><div class="fico">🔒</div><div class="ftitle">Your Session, Safe</div><div class="fdesc">Your WhatsApp session is AES encrypted. We never read your messages.</div></div>
+    <div class="feat"><div class="fico">♻️</div><div class="ftitle">Always Connected</div><div class="fdesc">Our server keeps your WhatsApp alive 24/7 even when you close the browser.</div></div>
   </div>
 </div>
 
-<!-- HOW IT WORKS -->
-<div class="section" id="how" style="background:var(--white);max-width:100%;padding:72px 20px">
-  <div style="max-width:860px;margin:0 auto">
-    <div class="sec-label">The Process</div>
-    <div class="sec-title">Running in 3 steps.<br>Done in 5 minutes.</div>
-    <div class="steps">
-      <div class="step">
-        <div class="step-n">1</div>
-        <div class="step-body">
-          <div class="step-title">Create your free account</div>
-          <div class="step-desc">Enter your email and a password. Takes 20 seconds. You get a personal dashboard immediately.</div>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-n">2</div>
-        <div class="step-body">
-          <div class="step-title">Pay with MoMo or Airtel Money</div>
-          <div class="step-desc">Send <strong>7,000 UGX</strong> to our MoMo number. Submit your payment reference on the dashboard. We confirm within 1 hour and activate your account.</div>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-n">3</div>
-        <div class="step-body">
-          <div class="step-title">Scan once, use forever</div>
-          <div class="step-desc">We show you a QR code. Scan it with WhatsApp on any phone. Your session is saved — open your personal link on your old phone and you're in WhatsApp, no re-scanning ever.</div>
-        </div>
-      </div>
-    </div>
+<div style="background:var(--white);border-top:1.5px solid var(--border);border-bottom:1.5px solid var(--border)">
+<div class="section" id="how">
+  <div class="slabel">The Process</div>
+  <div class="stitle">Running in 3 steps. Done in 5 minutes.</div>
+  <div class="steps">
+    <div class="step"><div class="sn">1</div><div class="sbody"><div class="stept">Create your free account</div><div class="stepd">Enter your email and password. Takes 20 seconds. Dashboard opens immediately.</div></div></div>
+    <div class="step"><div class="sn">2</div><div class="sbody"><div class="stept">Pay with MoMo or Airtel Money</div><div class="stepd">Send <strong>7,000 UGX</strong> to our number. Submit your reference on the dashboard. We activate within 1 hour.</div></div></div>
+    <div class="step"><div class="sn">3</div><div class="sbody"><div class="stept">Scan once, use forever</div><div class="stepd">Scan the QR code with WhatsApp once. Your session is saved. Open your link on any old phone — you're in, no re-scanning ever.</div></div></div>
   </div>
 </div>
+</div>
 
-<!-- PRICING -->
 <div class="section">
-  <div class="sec-label">Pricing — Uganda Shillings</div>
-  <div class="sec-title">Start free.<br>Upgrade when ready.</div>
+  <div class="slabel">Pricing — Uganda Shillings</div>
+  <div class="stitle">Start free. Upgrade when ready.</div>
   <div class="price-grid">
     <div class="plan">
-      <div class="plan-name">Free</div>
-      <div class="plan-price">0 <sub>UGX/mo</sub></div>
-      <div class="plan-desc">Try it out before you pay anything.</div>
-      <ul class="plan-list">
+      <div class="pname">Free</div>
+      <div class="pprice">0 <sub>UGX/mo</sub></div>
+      <div class="pdesc">Try before you pay anything.</div>
+      <ul class="plist">
         <li>Personal browser link</li>
         <li>Session saved 3 days</li>
-        <li>Basic chat (text only)</li>
-        <li class="no">Session expires — must re-scan</li>
-        <li class="no">Ads shown before chat</li>
+        <li>Basic chat</li>
+        <li class="no">Session expires</li>
+        <li class="no">Ads shown</li>
       </ul>
-      <button class="plan-btn plan-btn-outline" onclick="openModal('register')">Start Free</button>
+      <button class="pbtn pbtn-o" onclick="openModal('register')">Start Free</button>
     </div>
     <div class="plan best">
-      <div class="plan-tag">MOST POPULAR</div>
-      <div class="plan-name">Pro Monthly</div>
-      <div class="plan-price">7,000 <sub>UGX/mo</sub></div>
-      <div class="plan-desc">Full access, kept alive all month.</div>
-      <ul class="plan-list">
+      <div class="ptag">MOST POPULAR</div>
+      <div class="pname">Pro Monthly</div>
+      <div class="pprice">7,000 <sub>UGX/mo</sub></div>
+      <div class="pdesc">Full access, kept alive all month.</div>
+      <ul class="plist">
         <li>Session never expires</li>
         <li>No ads — ever</li>
-        <li>Send texts, voice notes & images</li>
-        <li>Priority server (faster)</li>
-        <li>Pay with MoMo or Airtel</li>
+        <li>Texts, voice &amp; images</li>
+        <li>Priority server</li>
+        <li>Pay MoMo or Airtel</li>
       </ul>
-      <button class="plan-btn plan-btn-green" onclick="openModal('register')">Get Pro — 7,000 UGX</button>
+      <button class="pbtn pbtn-g" onclick="openModal('register')">Get Pro — 7,000 UGX</button>
     </div>
     <div class="plan">
-      <div class="plan-name">3 Months</div>
-      <div class="plan-price">18,000 <sub>UGX</sub></div>
-      <div class="plan-desc">Save 3,000 UGX — best value.</div>
-      <ul class="plan-list">
+      <div class="pname">3 Months</div>
+      <div class="pprice">18,000 <sub>UGX</sub></div>
+      <div class="pdesc">Save 3,000 UGX — best value.</div>
+      <ul class="plist">
         <li>Everything in Pro</li>
         <li>3 months uninterrupted</li>
-        <li>Share link with 1 family member</li>
+        <li>Share with 1 family member</li>
         <li>First to get new features</li>
-        <li>Pay once, relax</li>
       </ul>
-      <button class="plan-btn plan-btn-outline" onclick="openModal('register')">Get 3 Months</button>
+      <button class="pbtn pbtn-o" onclick="openModal('register')">Get 3 Months</button>
     </div>
   </div>
 
-  <div class="momo-banner">
-    <div class="momo-icon">📲</div>
+  <div class="momo-box">
+    <div class="mico">📲</div>
     <div>
-      <div class="momo-title">Pay with MoMo or Airtel Money</div>
-      <div class="momo-desc">No bank card needed. Send money to our number, submit your transaction reference on the dashboard, and we activate you within 1 hour — even on weekends.</div>
-      <div class="momo-numbers">
-        <span class="momo-tag">MTN MoMo: 0763153389</span>
-        <span class="momo-tag">Airtel: 0753187966</span>
+      <div class="mtt">Pay with MoMo or Airtel Money</div>
+      <div class="mds">No bank card needed. Send money, submit your transaction reference, we activate you within 1 hour — even on weekends.</div>
+      <div class="mnums">
+        <span class="mtag">MTN MoMo: 0771 234 567</span>
+        <span class="mtag">Airtel: 0751 234 567</span>
       </div>
     </div>
   </div>
 </div>
 
 <footer>
-  <strong>OldFone Uganda</strong> — WhatsApp access for every device &nbsp;|&nbsp;
-  Not affiliated with WhatsApp or Meta &nbsp;|&nbsp;
-  <a href="mailto:support@oldfone.app" style="color:var(--leaf)">support@oldfone.app</a>
+  <strong>OldFone Uganda</strong> — WhatsApp for every device &nbsp;|&nbsp; Not affiliated with WhatsApp or Meta
 </footer>
 
-<!-- ══ LOGIN MODAL ══ -->
-<div class="overlay" id="auth-modal" onclick="handleOvClick(event,'auth-modal')">
+<!-- MODAL -->
+<div class="overlay" id="auth-modal">
   <div class="modal">
-    <button class="modal-x" onclick="closeModal('auth-modal')">✕</button>
+    <button class="mx" onclick="closeModal()">✕</button>
     <div class="tabs">
-      <button class="tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
-      <button class="tab" id="tab-register" onclick="switchTab('register')">Create Account</button>
+      <button class="tab on" id="tab-li" onclick="switchTab('login')">Sign In</button>
+      <button class="tab" id="tab-reg" onclick="switchTab('register')">Create Account</button>
     </div>
 
-    <!-- LOGIN -->
-    <div id="pane-login">
-      <div class="modal-title">Welcome back</div>
-      <div class="modal-sub">Sign in to access your WhatsApp link</div>
-      <div class="err" id="login-err"></div>
-      <div class="ok-msg" id="login-ok"></div>
-      <div class="field"><label class="label">Email</label><input class="input" id="login-email" type="email" placeholder="you@gmail.com"></div>
-      <div class="field"><label class="label">Password</label><input class="input" id="login-pw" type="password" placeholder="••••••••"></div>
-      <button class="submit" id="login-btn" onclick="doLogin()">Sign In →</button>
+    <div id="pane-li">
+      <div class="mtitle">Welcome back</div>
+      <div class="msub">Sign in to access your WhatsApp link</div>
+      <div class="errmsg" id="li-err"></div>
+      <div class="okmsg" id="li-ok"></div>
+      <div class="field"><label class="lbl">Email</label><input class="inp" id="li-email" type="email" placeholder="you@gmail.com"></div>
+      <div class="field"><label class="lbl">Password</label><input class="inp" id="li-pw" type="password" placeholder="••••••••"></div>
+      <button class="sub-btn" id="li-btn" onclick="doLogin()">Sign In →</button>
     </div>
 
-    <!-- REGISTER -->
-    <div id="pane-register" style="display:none">
-      <div class="modal-title">Get your link</div>
-      <div class="modal-sub">Free account — no card needed to start</div>
-      <div class="err" id="reg-err"></div>
-      <div class="ok-msg" id="reg-ok"></div>
-      <div class="field"><label class="label">Email</label><input class="input" id="reg-email" type="email" placeholder="you@gmail.com"></div>
-      <div class="field"><label class="label">Password (6+ characters)</label><input class="input" id="reg-pw" type="password" placeholder="••••••••"></div>
-      <button class="submit" id="reg-btn" onclick="doRegister()">Create Free Account →</button>
+    <div id="pane-reg" style="display:none">
+      <div class="mtitle">Get your link</div>
+      <div class="msub">Free account — no card needed to start</div>
+      <div class="errmsg" id="reg-err"></div>
+      <div class="okmsg" id="reg-ok"></div>
+      <div class="field"><label class="lbl">Email</label><input class="inp" id="reg-email" type="email" placeholder="you@gmail.com"></div>
+      <div class="field"><label class="lbl">Password (6+ chars)</label><input class="inp" id="reg-pw" type="password" placeholder="••••••••"></div>
+      <button class="sub-btn" id="reg-btn" onclick="doRegister()">Create Free Account →</button>
     </div>
   </div>
 </div>
 
 <script>
+// ── PURE OLD-SCHOOL JS — works on iOS 9, Android 4, any old browser ──────────
+
 function openModal(tab) {
-  document.getElementById('auth-modal').classList.add('open');
+  document.getElementById('auth-modal').className = 'overlay open';
   switchTab(tab || 'login');
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function handleOvClick(e, id) { if (e.target.id === id) closeModal(id); }
-function switchTab(t) {
-  document.getElementById('pane-login').style.display = t==='login'?'block':'none';
-  document.getElementById('pane-register').style.display = t==='register'?'block':'none';
-  document.getElementById('tab-login').className = 'tab'+(t==='login'?' active':'');
-  document.getElementById('tab-register').className = 'tab'+(t==='register'?' active':'');
+function closeModal() {
+  document.getElementById('auth-modal').className = 'overlay';
 }
+// Close on overlay click
+document.getElementById('auth-modal').onclick = function(e) {
+  if (e.target === this) closeModal();
+};
+
+function switchTab(t) {
+  document.getElementById('pane-li').style.display = t === 'login' ? 'block' : 'none';
+  document.getElementById('pane-reg').style.display = t === 'register' ? 'block' : 'none';
+  document.getElementById('tab-li').className = 'tab' + (t === 'login' ? ' on' : '');
+  document.getElementById('tab-reg').className = 'tab' + (t === 'register' ? ' on' : '');
+}
+
 function showErr(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg; el.style.display = 'block';
-  setTimeout(() => el.style.display='none', 5000);
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 5000);
 }
 function showOk(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg; el.style.display = 'block';
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
 }
 
-async function doLogin() {
-  const email = document.getElementById('login-email').value;
-  const pw = document.getElementById('login-pw').value;
-  const btn = document.getElementById('login-btn');
-  btn.disabled = true; btn.textContent = 'Signing in...';
-  try {
-    const r = await fetch('/api/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
-    const d = await r.json();
-    if (d.ok) {
-      window.location.href = d.isAdmin ? '/admin' : '/dashboard';
-    } else {
-      showErr('login-err', d.error || 'Login failed');
-      btn.disabled = false; btn.textContent = 'Sign In →';
+// XMLHttpRequest — works on EVERY browser including very old ones
+function post(url, data, onSuccess, onError) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', url, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        try {
+          var d = JSON.parse(xhr.responseText);
+          onSuccess(d);
+        } catch(e) {
+          onError('Server error');
+        }
+      } else {
+        onError('Connection failed');
+      }
     }
-  } catch { showErr('login-err','Connection error'); btn.disabled=false; btn.textContent='Sign In →'; }
+  };
+  xhr.onerror = function() { onError('Network error'); };
+  xhr.send(JSON.stringify(data));
 }
 
-async function doRegister() {
-  const email = document.getElementById('reg-email').value;
-  const pw = document.getElementById('reg-pw').value;
-  const btn = document.getElementById('reg-btn');
-  btn.disabled = true; btn.textContent = 'Creating account...';
-  try {
-    const r = await fetch('/api/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
-    const d = await r.json();
-    if (d.ok) {
-      window.location.href = '/dashboard';
-    } else {
-      showErr('reg-err', d.error || 'Registration failed');
-      btn.disabled = false; btn.textContent = 'Create Free Account →';
+function doLogin() {
+  var email = document.getElementById('li-email').value;
+  var pw = document.getElementById('li-pw').value;
+  if (!email || !pw) { showErr('li-err', 'Please enter email and password'); return; }
+  var btn = document.getElementById('li-btn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  post('/api/login', { email: email, password: pw },
+    function(d) {
+      if (d.ok) {
+        window.location.href = d.isAdmin ? '/admin' : '/dashboard';
+      } else {
+        showErr('li-err', d.error || 'Login failed');
+        btn.disabled = false;
+        btn.textContent = 'Sign In →';
+      }
+    },
+    function(err) {
+      showErr('li-err', err);
+      btn.disabled = false;
+      btn.textContent = 'Sign In →';
     }
-  } catch { showErr('reg-err','Connection error'); btn.disabled=false; btn.textContent='Create Free Account →'; }
+  );
 }
 
-// Enter key
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    if (document.getElementById('pane-login').style.display !== 'none') doLogin();
-    else doRegister();
+function doRegister() {
+  var email = document.getElementById('reg-email').value;
+  var pw = document.getElementById('reg-pw').value;
+  if (!email || !pw) { showErr('reg-err', 'Please enter email and password'); return; }
+  if (pw.length < 6) { showErr('reg-err', 'Password must be 6+ characters'); return; }
+  var btn = document.getElementById('reg-btn');
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+  post('/api/register', { email: email, password: pw },
+    function(d) {
+      if (d.ok) {
+        window.location.href = d.isAdmin ? '/admin' : '/dashboard';
+      } else {
+        showErr('reg-err', d.error || 'Registration failed');
+        btn.disabled = false;
+        btn.textContent = 'Create Free Account →';
+      }
+    },
+    function(err) {
+      showErr('reg-err', err);
+      btn.disabled = false;
+      btn.textContent = 'Create Free Account →';
+    }
+  );
+}
+
+// Enter key support
+document.addEventListener('keydown', function(e) {
+  if (e.keyCode === 13) {
+    var liVisible = document.getElementById('pane-li').style.display !== 'none';
+    if (liVisible) doLogin(); else doRegister();
   }
-});
-
-// Scroll reveal
-const obs = new IntersectionObserver(entries => entries.forEach(e => {
-  if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)'}
-}),{threshold:0.1});
-document.querySelectorAll('.feat,.plan,.step').forEach(el=>{
-  el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.45s ease,transform 0.45s ease';
-  obs.observe(el);
 });
 </script>
 </body>
