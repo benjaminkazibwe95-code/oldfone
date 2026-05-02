@@ -182,7 +182,7 @@ select.input{cursor:pointer}
     <div class="card-sub">Pay with MTN MoMo or Airtel Money to activate your session</div>
 
     <div class="pay-steps">
-      <div class="pay-step">1. Send <strong>7,000 UGX</strong> to MTN MoMo: <strong id="mtn-number">0763153389</strong><br>— OR — Airtel Money: <strong id="airtel-number">0753187966</strong></div>
+      <div class="pay-step">1. Send <strong>7,000 UGX</strong> to MTN MoMo: <strong id="mtn-number">0771 234 567</strong><br>— OR — Airtel Money: <strong id="airtel-number">0751 234 567</strong></div>
       <div class="pay-step">2. Note the <strong>transaction reference</strong> you receive via SMS</div>
       <div class="pay-step">3. Fill in the form below and submit — we activate you within <strong>1 hour</strong></div>
     </div>
@@ -213,222 +213,246 @@ select.input{cursor:pointer}
 </div>
 
 <script>
-let myEmail = '';
-let myPlan = 'free';
-let myStatus = 'pending';
-let waStatus = 'none';
-let qrPoller = null;
-const messages = [];
+// ── FULLY COMPATIBLE JS — works on iPhone 6 iOS 9, Android 4 ─────────────────
+var myEmail = '';
+var myPlan = 'free';
+var myStatus = 'pending';
+var waStatus = 'none';
+var qrPoller = null;
+
+// Core XHR helper — withCredentials is CRITICAL for iOS Safari session cookies
+function xhr(method, url, data, onSuccess, onError) {
+  var req = new XMLHttpRequest();
+  req.open(method, url, true);
+  req.withCredentials = true;
+  req.timeout = 15000;
+  if (data) req.setRequestHeader('Content-Type', 'application/json');
+  req.onload = function() {
+    if (req.status >= 200 && req.status < 300) {
+      try { onSuccess(JSON.parse(req.responseText)); }
+      catch(e) { if (onError) onError('Bad response'); }
+    } else {
+      if (onError) onError('Error ' + req.status);
+    }
+  };
+  req.onerror = function() { if (onError) onError('Network error'); };
+  req.ontimeout = function() { if (onError) onError('Timed out'); };
+  req.send(data ? JSON.stringify(data) : null);
+}
+
+function get(url, onSuccess, onError) { xhr('GET', url, null, onSuccess, onError); }
+function post(url, data, onSuccess, onError) { xhr('POST', url, data, onSuccess, onError); }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-async function init() {
-  try {
-    const r = await fetch('/api/me');
-    const d = await r.json();
+function init() {
+  get('/api/me', function(d) {
     if (!d.ok) { window.location.href = '/'; return; }
-
     myEmail = d.user.email;
     myPlan = d.user.plan;
     myStatus = d.user.status;
     waStatus = d.socketStatus;
 
     document.getElementById('user-email').textContent = myEmail;
+    var chip = document.getElementById('plan-chip');
+    chip.textContent = (myPlan === 'pro' || myPlan === 'pro3') ? 'PRO' : 'FREE';
+    chip.className = 'plan-chip ' + ((myPlan === 'pro' || myPlan === 'pro3') ? 'plan-pro' : 'plan-free');
 
-    const chip = document.getElementById('plan-chip');
-    chip.textContent = myPlan === 'pro' ? 'PRO' : 'FREE';
-    chip.className = 'plan-chip ' + (myPlan === 'pro' ? 'plan-pro' : 'plan-free');
-
-    // Update link
-    const linkUrl = `${window.location.origin}/dashboard`;
-    document.getElementById('link-url').textContent = linkUrl;
+    document.getElementById('link-url').textContent = window.location.origin + '/dashboard';
     document.getElementById('link-card').style.display = 'block';
 
-    // Show payment status
-    await loadPaymentStatus();
-
-    // Update WA status display
+    loadPaymentStatus();
     updateStatusCard(waStatus, d.wa);
-
-    // If already connected, show chat
-    if (waStatus === 'connected') {
-      showChat();
-    }
-
-  } catch(e) {
-    console.error(e);
+    if (waStatus === 'connected') showChat();
+  }, function() {
     window.location.href = '/';
-  }
+  });
 }
 
-async function loadPaymentStatus() {
-  const r = await fetch('/api/payment/status');
-  const d = await r.json();
-  const area = document.getElementById('pay-status-area');
-
+function loadPaymentStatus() {
+  var area = document.getElementById('pay-status-area');
   if (myStatus === 'active') {
     document.getElementById('pay-card').style.display = 'none';
-    area.innerHTML = `<div class="pay-status-card pay-active"><div class="pay-status-icon">✅</div><div><strong>Account Active</strong><br>Your ${myPlan === 'pro3' ? '3-month' : 'monthly'} plan is running. Your WhatsApp session is kept alive 24/7.</div></div>`;
+    area.innerHTML = '<div class="pay-status-card pay-active"><div class="pay-status-icon">✅</div><div><strong>Account Active</strong><br>Your plan is running. WhatsApp kept alive 24/7.</div></div>';
     return;
   }
-
-  if (d.payment?.status === 'pending') {
-    area.innerHTML = `<div class="pay-status-card pay-pending"><div class="pay-status-icon">⏳</div><div><strong>Payment Under Review</strong><br>We received your payment proof and will activate your account within 1 hour. Check back soon!</div></div>`;
-    document.getElementById('pay-card').style.display = 'none';
-  }
+  get('/api/payment/status', function(d) {
+    if (d.payment && d.payment.status === 'pending') {
+      area.innerHTML = '<div class="pay-status-card pay-pending"><div class="pay-status-icon">⏳</div><div><strong>Payment Under Review</strong><br>We received your proof and will activate within 1 hour.</div></div>';
+      document.getElementById('pay-card').style.display = 'none';
+    }
+  });
 }
 
 function updateStatusCard(status, waInfo) {
-  const num = document.getElementById('wa-number-display');
-  const stat = document.getElementById('wa-status-text');
-  const btn = document.getElementById('connect-btn');
-
+  var num = document.getElementById('wa-number-display');
+  var stat = document.getElementById('wa-status-text');
+  var btn = document.getElementById('connect-btn');
   if (status === 'connected') {
-    num.textContent = waInfo?.wa_number ? `+${waInfo.wa_number}` : 'Connected';
+    num.textContent = (waInfo && waInfo.wa_number) ? '+' + waInfo.wa_number : 'Connected';
     stat.innerHTML = '<span class="status-dot dot-green"></span>WhatsApp connected & running';
     btn.textContent = 'Reconnect';
+    btn.disabled = false;
   } else if (status === 'awaiting_scan') {
     num.textContent = 'Scan QR to connect';
     stat.innerHTML = '<span class="status-dot dot-gold"></span>Waiting for QR scan...';
-    btn.textContent = 'Waiting...'; btn.disabled = true;
+    btn.textContent = 'Waiting...';
+    btn.disabled = true;
   } else {
     num.textContent = myStatus === 'active' ? 'Tap Connect to start' : 'Activate account first';
     stat.innerHTML = '<span class="status-dot dot-grey"></span>Not connected';
     btn.textContent = 'Connect WhatsApp';
-    btn.disabled = myStatus !== 'active';
+    btn.disabled = (myStatus !== 'active');
   }
 }
 
 // ── WA CONNECT ────────────────────────────────────────────────────────────────
-async function startWA() {
+function startWA() {
   if (myStatus !== 'active') {
-    document.getElementById('pay-card').scrollIntoView({behavior:'smooth'});
+    var pc = document.getElementById('pay-card');
+    if (pc) pc.scrollIntoView();
     return;
   }
-  document.getElementById('connect-btn').disabled = true;
-  document.getElementById('connect-btn').textContent = 'Starting...';
-
-  const r = await fetch('/api/wa/start', {method:'POST'});
-  const d = await r.json();
-  if (!d.ok) { alert(d.error); return; }
-
-  if (d.status === 'already_connected') { showChat(); return; }
-
-  document.getElementById('qr-card').style.display = 'block';
-  document.getElementById('qr-card').scrollIntoView({behavior:'smooth'});
-  pollQR();
+  var btn = document.getElementById('connect-btn');
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+  post('/api/wa/start', {}, function(d) {
+    if (!d.ok) { alert(d.error); btn.disabled = false; btn.textContent = 'Connect WhatsApp'; return; }
+    if (d.status === 'already_connected') { showChat(); return; }
+    document.getElementById('qr-card').style.display = 'block';
+    document.getElementById('qr-card').scrollIntoView();
+    pollQR();
+  }, function(err) {
+    alert('Error: ' + err);
+    btn.disabled = false;
+    btn.textContent = 'Connect WhatsApp';
+  });
 }
 
 function pollQR() {
   if (qrPoller) clearInterval(qrPoller);
-  qrPoller = setInterval(async () => {
-    const r = await fetch('/api/wa/qr');
-    const d = await r.json();
-    waStatus = d.status;
-    updateStatusCard(d.status, null);
-
-    if (d.status === 'awaiting_scan' && d.qr) {
-      const box = document.getElementById('qr-box');
-      box.innerHTML = `<img src="${d.qr}" alt="WhatsApp QR Code" style="width:100%;height:100%;border-radius:12px">`;
-      document.getElementById('qr-hint').textContent = 'Scan now with WhatsApp → Linked Devices → Link a Device';
-    }
-
-    if (d.status === 'connected') {
-      clearInterval(qrPoller);
-      document.getElementById('qr-card').style.display = 'none';
-      document.getElementById('connect-btn').disabled = false;
-      showChat();
-    }
-
-    if (d.status === 'disconnected' || d.status === 'none') {
-      clearInterval(qrPoller);
-      document.getElementById('connect-btn').disabled = false;
-      document.getElementById('connect-btn').textContent = 'Connect WhatsApp';
-    }
+  qrPoller = setInterval(function() {
+    get('/api/wa/qr', function(d) {
+      waStatus = d.status;
+      updateStatusCard(d.status, null);
+      if (d.status === 'awaiting_scan' && d.qr) {
+        var box = document.getElementById('qr-box');
+        box.innerHTML = '<img src="' + d.qr + '" style="width:100%;height:100%;border-radius:12px" alt="QR">';
+        document.getElementById('qr-hint').textContent = 'Scan with WhatsApp > Linked Devices > Link a Device';
+      }
+      if (d.status === 'connected') {
+        clearInterval(qrPoller);
+        document.getElementById('qr-card').style.display = 'none';
+        showChat();
+      }
+      if (d.status === 'disconnected' || d.status === 'none') {
+        clearInterval(qrPoller);
+        var btn = document.getElementById('connect-btn');
+        btn.disabled = false;
+        btn.textContent = 'Connect WhatsApp';
+      }
+    });
   }, 2500);
 }
 
 function showChat() {
   document.getElementById('chat-card').style.display = 'block';
   updateStatusCard('connected', null);
-  document.getElementById('connect-btn').textContent = 'Reconnect';
-  document.getElementById('connect-btn').disabled = false;
 }
 
 // ── CHAT ──────────────────────────────────────────────────────────────────────
-async function sendMsg() {
-  const to = document.getElementById('chat-to').value.trim().replace(/\s/g,'').replace(/^\+?256/,'256').replace(/^0/,'256');
-  const text = document.getElementById('msg-input').value.trim();
+function sendMsg() {
+  var raw = document.getElementById('chat-to').value.replace(/\s/g, '');
+  var to = raw.replace(/^\+?256/, '256').replace(/^0/, '256');
+  var text = document.getElementById('msg-input').value;
   if (!to || !text) return;
-
-  // Optimistic UI
   addMessage(text, 'out');
   document.getElementById('msg-input').value = '';
-
-  try {
-    const r = await fetch('/api/wa/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to,message:text})});
-    const d = await r.json();
-    if (!d.ok) addMessage('⚠️ Failed to send: ' + d.error, 'in');
-  } catch { addMessage('⚠️ Connection error', 'in'); }
+  post('/api/wa/send', { to: to, message: text }, function(d) {
+    if (!d.ok) addMessage('Failed: ' + d.error, 'in');
+  }, function() {
+    addMessage('Connection error', 'in');
+  });
 }
 
 function addMessage(text, dir) {
-  const area = document.getElementById('messages-area');
-  const empty = area.querySelector('.empty-chat');
-  if (empty) empty.remove();
-  const now = new Date().toLocaleTimeString('en-UG',{hour:'2-digit',minute:'2-digit'});
-  const div = document.createElement('div');
-  div.className = `msg-bubble msg-${dir}`;
-  div.innerHTML = `${text}<div class="msg-time">${now}</div>`;
+  var area = document.getElementById('messages-area');
+  var empty = area.querySelector('.empty-chat');
+  if (empty) empty.parentNode.removeChild(empty);
+  var now = new Date();
+  var time = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+  var div = document.createElement('div');
+  div.className = 'msg-bubble msg-' + dir;
+  div.innerHTML = text + '<div class="msg-time">' + time + '</div>';
   area.appendChild(div);
   area.scrollTop = area.scrollHeight;
 }
 
 // ── PAYMENT ───────────────────────────────────────────────────────────────────
-async function submitPayment() {
-  const number = document.getElementById('pay-number').value.trim();
-  const name = document.getElementById('pay-name').value.trim();
-  const network = document.getElementById('pay-network').value;
-  const plan = document.getElementById('pay-plan').value;
-  const ref = document.getElementById('pay-ref').value.trim();
-
-  if (!number || !name || !ref) {
-    showAlert('pay-err','Please fill in all fields'); return;
-  }
-
-  const btn = document.getElementById('pay-btn');
-  btn.disabled = true; btn.textContent = 'Submitting...';
-
-  const r = await fetch('/api/payment/submit', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({momo_number:number,momo_name:name,network,plan,ref})});
-  const d = await r.json();
-
-  if (d.ok) {
-    showAlert('pay-ok', '✅ Payment submitted! We will activate you within 1 hour. No need to resubmit.');
-    document.getElementById('pay-card').style.display = 'none';
-    document.getElementById('pay-status-area').innerHTML = `<div class="pay-status-card pay-pending"><div class="pay-status-icon">⏳</div><div><strong>Payment Under Review</strong><br>We received your proof and will activate within 1 hour. You can close this page.</div></div>`;
-  } else {
-    showAlert('pay-err', d.error || 'Error submitting');
-    btn.disabled = false; btn.textContent = 'Submit Payment Proof';
-  }
+function submitPayment() {
+  var number = document.getElementById('pay-number').value.trim();
+  var name = document.getElementById('pay-name').value.trim();
+  var network = document.getElementById('pay-network').value;
+  var plan = document.getElementById('pay-plan').value;
+  var ref = document.getElementById('pay-ref').value.trim();
+  if (!number || !name || !ref) { showAlert('pay-err', 'Please fill in all fields'); return; }
+  var btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+  post('/api/payment/submit', { momo_number: number, momo_name: name, network: network, plan: plan, ref: ref },
+    function(d) {
+      if (d.ok) {
+        showAlert('pay-ok', 'Payment submitted! We will activate you within 1 hour.');
+        document.getElementById('pay-card').style.display = 'none';
+        document.getElementById('pay-status-area').innerHTML = '<div class="pay-status-card pay-pending"><div class="pay-status-icon">⏳</div><div><strong>Payment Under Review</strong><br>We received your proof and will activate within 1 hour.</div></div>';
+      } else {
+        showAlert('pay-err', d.error || 'Error submitting');
+        btn.disabled = false;
+        btn.textContent = 'Submit Payment Proof';
+      }
+    },
+    function(err) {
+      showAlert('pay-err', err);
+      btn.disabled = false;
+      btn.textContent = 'Submit Payment Proof';
+    }
+  );
 }
 
 function showAlert(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg; el.style.display = 'block';
-  if (id.includes('err')) setTimeout(()=>el.style.display='none', 6000);
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (id.indexOf('err') !== -1) setTimeout(function() { el.style.display = 'none'; }, 6000);
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function copyLink() {
-  const url = document.getElementById('link-url').textContent;
-  navigator.clipboard.writeText(url).then(() => {
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000);
-  });
+  var url = document.getElementById('link-url').textContent;
+  var btn = document.querySelector('.copy-btn');
+  try {
+    navigator.clipboard.writeText(url).then(function() {
+      btn.textContent = 'Copied!';
+      setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+    });
+  } catch(e) {
+    // Fallback for old browsers
+    var ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+  }
 }
 
-async function doLogout() {
-  await fetch('/api/logout', {method:'POST'});
-  window.location.href = '/';
+function doLogout() {
+  post('/api/logout', {}, function() {
+    window.location.href = '/';
+  }, function() {
+    window.location.href = '/';
+  });
 }
 
 init();
