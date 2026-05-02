@@ -68,11 +68,16 @@ app.use(express.urlencoded({ extended: true }));
 // Serve all HTML files from root directory (where you put them)
 app.use(express.static(__dirname));
 
+app.set('trust proxy', 1); // needed for Render HTTPS
 app.use(session({
   secret: process.env.SESSION_SECRET || 'oldfone-uganda-fallback-secret',
-  resave: false,
+  resave: true,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 30 * 24 * 60 * 60 * 1000 }
+  cookie: {
+    secure: false,       // keep false — Render handles HTTPS termination
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000
+  }
 }));
 
 function requireAuth(req, res, next) {
@@ -358,8 +363,14 @@ app.get('/dashboard', (req, res) => {
   if (!req.session.userId) return res.redirect('/');
   res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
-app.get('/admin', (req, res) => {
-  if (req.session.role !== 'admin') return res.redirect('/');
+app.get('/admin', async (req, res) => {
+  // Check DB directly — don't rely on session role which can be lost
+  if (!req.session.userId) return res.redirect('/');
+  const r = await db.query('SELECT email FROM users WHERE id=$1', [req.session.userId]);
+  const user = r.rows[0];
+  if (!user) return res.redirect('/');
+  const isAdmin = user.email.toLowerCase() === (process.env.ADMIN_EMAIL || '').toLowerCase();
+  if (!isAdmin) return res.redirect('/');
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
