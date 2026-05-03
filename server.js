@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const QRCode = require('qrcode');
@@ -48,6 +49,13 @@ async function initDB() {
       status TEXT DEFAULT 'pending',
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      sid VARCHAR NOT NULL COLLATE "default",
+      sess JSON NOT NULL,
+      expire TIMESTAMP(6) NOT NULL,
+      CONSTRAINT session_pkey PRIMARY KEY (sid)
+    );
+    CREATE INDEX IF NOT EXISTS IDX_session_expire ON user_sessions (expire);
   `);
   console.log('DB ready');
 
@@ -63,19 +71,24 @@ async function initDB() {
 // ── MIDDLEWARE ────────────────────────────────────────────────────────────────
 app.set('trust proxy', 1);
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // needed for HTML form POSTs
+app.use(express.urlencoded({ extended: true }));
 
-// KEY FIX: SameSite=None fixes iOS Safari 12 session cookie loss after redirect
-// secure:false is correct — Render terminates SSL before Node sees the request
+// Session store uses PostgreSQL — survives Render restarts
+// secure:'auto' means: HTTPS=secure cookie, HTTP=not secure — perfect for Render
 app.use(session({
+  store: new pgSession({
+    pool: db,
+    tableName: 'user_sessions',
+    createTableIfMissing: false  // we create it manually in initDB above
+  }),
   secret: process.env.SESSION_SECRET || 'oldfone-secret-change-me',
-  resave: true,
+  resave: false,
   saveUninitialized: false,
   rolling: true,
   cookie: {
-    secure: false,
+    secure: 'auto',  // auto detects HTTPS via trust proxy — works on Render + local
     httpOnly: true,
-    sameSite: 'none', // <-- THIS fixes iPhone 6 iOS 12 Safari session loss
+    sameSite: 'lax',
     maxAge: 30 * 24 * 60 * 60 * 1000
   }
 }));
@@ -161,20 +174,23 @@ async function startWASession(userId, savedCreds) {
 app.post('/form/login', async function(req, res) {
   const email = (req.body.email || '').toLowerCase().trim();
   const password = req.body.password || '';
+  console.log('LOGIN attempt:', email);
   try {
     const r = await db.query('SELECT * FROM users WHERE email=$1', [email]);
     const user = r.rows[0];
-    if (!user) return res.redirect('/?err=notfound');
+    if (!user) { console.log('LOGIN fail: not found'); return res.redirect('/?err=notfound'); }
     const match = await bcrypt.compare(password, user.password_hash);
-    if (!match) return res.redirect('/?err=wrongpw');
+    if (!match) { console.log('LOGIN fail: wrong pw'); return res.redirect('/?err=wrongpw'); }
     req.session.userId = user.id;
+    console.log('LOGIN ok, saving session, userId=', user.id);
     req.session.save(function(err) {
-      if (err) return res.redirect('/?err=session');
+      if (err) { console.error('SESSION SAVE ERROR:', err); return res.redirect('/?err=session'); }
+      console.log('SESSION saved ok, redirecting');
       if (email === adminEmail()) return res.redirect('/admin');
       return res.redirect('/dashboard');
     });
   } catch (e) {
-    console.error(e);
+    console.error('LOGIN error:', e);
     res.redirect('/?err=server');
   }
 });
