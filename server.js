@@ -1,7 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const session = require('express-session');
-const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const QRCode = require('qrcode');
@@ -73,29 +71,30 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session store uses PostgreSQL — survives Render restarts
-// secure:'auto' means: HTTPS=secure cookie, HTTP=not secure — perfect for Render
-app.use(session({
-  store: new pgSession({
-    pool: db,
-    tableName: 'user_sessions',
-    createTableIfMissing: false  // we create it manually in initDB above
-  }),
-  secret: process.env.SESSION_SECRET || 'oldfone-secret-change-me',
-  resave: false,
-  saveUninitialized: false,
-  rolling: true,
-  cookie: {
-    secure: 'auto',  // auto detects HTTPS via trust proxy — works on Render + local
-    httpOnly: true,
-    sameSite: 'lax',
-    maxAge: 30 * 24 * 60 * 60 * 1000
-  }
-}));
+// Simple in-memory token store — bypasses ALL cookie issues on every browser/phone
+// Token is passed in URL after login, stored in the page, sent as a header on API calls
+const tokens = {}; // token -> { userId, email, created }
+
+function makeToken(userId, email) {
+  const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  tokens[token] = { userId, email, created: Date.now() };
+  // Clean old tokens every time we make a new one
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  Object.keys(tokens).forEach(function(t) { if (tokens[t].created < cutoff) delete tokens[t]; });
+  return token;
+}
+
+function requireAuth(req, res, next) {
+  const token = req.headers['x-auth-token'] || req.query.token;
+  if (!token || !tokens[token]) return res.status(401).json({ error: 'Not logged in' });
+  req.userId = tokens[token].userId;
+  req.userEmail = tokens[token].email;
+  next();
+}
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
-  if (!req.session.userId) return res.status(401).json({ error: 'Not logged in' });
+  if (!req.userId) return res.status(401).json({ error: 'Not logged in' });
   next();
 }
 
@@ -103,12 +102,8 @@ function adminEmail() {
   return (process.env.ADMIN_EMAIL || '').toLowerCase().trim();
 }
 
-async function checkIsAdmin(req) {
-  if (!req.session.userId) return false;
-  try {
-    const r = await db.query('SELECT email FROM users WHERE id=$1', [req.session.userId]);
-    return r.rows[0] && r.rows[0].email.toLowerCase() === adminEmail();
-  } catch (e) { return false; }
+function checkIsAdmin(req) {
+  return req.userEmail && req.userEmail.toLowerCase() === adminEmail();
 }
 
 // ── WHATSAPP ──────────────────────────────────────────────────────────────────
@@ -178,17 +173,13 @@ app.post('/form/login', async function(req, res) {
   try {
     const r = await db.query('SELECT * FROM users WHERE email=$1', [email]);
     const user = r.rows[0];
-    if (!user) { console.log('LOGIN fail: not found'); return res.redirect('/?err=notfound'); }
+    if (!user) { console.log('not found'); return res.redirect('/?err=notfound'); }
     const match = await bcrypt.compare(password, user.password_hash);
-    if (!match) { console.log('LOGIN fail: wrong pw'); return res.redirect('/?err=wrongpw'); }
-    req.session.userId = user.id;
-    console.log('LOGIN ok, saving session, userId=', user.id);
-    req.session.save(function(err) {
-      if (err) { console.error('SESSION SAVE ERROR:', err); return res.redirect('/?err=session'); }
-      console.log('SESSION saved ok, redirecting');
-      if (email === adminEmail()) return res.redirect('/admin');
-      return res.redirect('/dashboard');
-    });
+    if (!match) { console.log('wrong pw'); return res.redirect('/?err=wrongpw'); }
+    const token = makeToken(user.id, user.email);
+    console.log('LOGIN ok, token created');
+    if (email === adminEmail()) return res.redirect('/admin?token=' + token);
+    return res.redirect('/dashboard?token=' + token);
   } catch (e) {
     console.error('LOGIN error:', e);
     res.redirect('/?err=server');
@@ -206,26 +197,26 @@ app.post('/form/register', async function(req, res) {
       'INSERT INTO users(email,password_hash,status,plan) VALUES($1,$2,$3,$4) RETURNING id',
       [email, hash, isAdmin ? 'active' : 'pending', isAdmin ? 'pro' : 'free']
     );
-    req.session.userId = r.rows[0].id;
-    req.session.save(function(err) {
-      if (err) return res.redirect('/?err=session');
-      return res.redirect(isAdmin ? '/admin' : '/dashboard');
-    });
+    const token = makeToken(r.rows[0].id, email);
+    console.log('REGISTER ok:', email);
+    return res.redirect((isAdmin ? '/admin' : '/dashboard') + '?token=' + token);
   } catch (e) {
     if (e.code === '23505') return res.redirect('/?err=exists');
-    console.error(e);
+    console.error('REGISTER error:', e);
     res.redirect('/?err=server');
   }
 });
 
 app.post('/form/logout', function(req, res) {
-  req.session.destroy(function() { res.redirect('/'); });
+  const token = req.body.token || '';
+  if (token && tokens[token]) delete tokens[token];
+  res.redirect('/');
 });
 
 // ── JSON API (for dashboard JS that runs after page load — session is stable by then)
 app.get('/api/me', requireAuth, async function(req, res) {
   try {
-    const r = await db.query('SELECT id,email,plan,status FROM users WHERE id=$1', [req.session.userId]);
+    const r = await db.query('SELECT id,email,plan,status FROM users WHERE id=$1', [req.userId]);
     const u = r.rows[0];
     if (!u) return res.json({ ok: false });
     const ws = await db.query('SELECT wa_number,connected FROM wa_sessions WHERE user_id=$1', [u.id]);
@@ -241,7 +232,7 @@ app.get('/api/me', requireAuth, async function(req, res) {
 });
 
 app.post('/api/wa/start', requireAuth, async function(req, res) {
-  const userId = req.session.userId;
+  const userId = req.userId;
   try {
     const ur = await db.query('SELECT status FROM users WHERE id=$1', [userId]);
     if (!ur.rows[0] || ur.rows[0].status !== 'active')
@@ -256,13 +247,13 @@ app.post('/api/wa/start', requireAuth, async function(req, res) {
 });
 
 app.get('/api/wa/qr', requireAuth, function(req, res) {
-  const sock = activeSockets[req.session.userId];
+  const sock = activeSockets[req.userId];
   if (!sock) return res.json({ ok: false, status: 'not_started', qr: null });
   res.json({ ok: true, status: sock.status, qr: sock.qr || null });
 });
 
 app.post('/api/wa/send', requireAuth, async function(req, res) {
-  const sock = activeSockets[req.session.userId];
+  const sock = activeSockets[req.userId];
   if (!sock || sock.status !== 'connected') return res.json({ ok: false, error: 'Not connected' });
   try {
     const to = req.body.to.includes('@') ? req.body.to : req.body.to + '@s.whatsapp.net';
@@ -278,7 +269,7 @@ app.post('/api/payment/submit', requireAuth, async function(req, res) {
   try {
     await db.query(
       'INSERT INTO payments(user_id,amount,momo_number,momo_name,network,plan,ref) VALUES($1,$2,$3,$4,$5,$6,$7)',
-      [req.session.userId, amount, momo_number, momo_name || '', network, plan, ref || '']
+      [req.userId, amount, momo_number, momo_name || '', network, plan, ref || '']
     );
     res.json({ ok: true });
   } catch (e) { res.json({ ok: false, error: 'Error saving' }); }
@@ -288,7 +279,7 @@ app.get('/api/payment/status', requireAuth, async function(req, res) {
   try {
     const r = await db.query(
       'SELECT status,plan,created_at FROM payments WHERE user_id=$1 ORDER BY created_at DESC LIMIT 1',
-      [req.session.userId]
+      [req.userId]
     );
     res.json({ ok: true, payment: r.rows[0] || null });
   } catch (e) { res.json({ ok: true, payment: null }); }
@@ -296,7 +287,7 @@ app.get('/api/payment/status', requireAuth, async function(req, res) {
 
 // ── ADMIN API ─────────────────────────────────────────────────────────────────
 app.get('/api/admin/stats', async function(req, res) {
-  if (!await checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  if (!checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   const [u, a, p, rev] = await Promise.all([
     db.query('SELECT COUNT(*) FROM users'),
     db.query("SELECT COUNT(*) FROM users WHERE status='active'"),
@@ -307,13 +298,13 @@ app.get('/api/admin/stats', async function(req, res) {
 });
 
 app.get('/api/admin/payments', async function(req, res) {
-  if (!await checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  if (!checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   const r = await db.query("SELECT p.*,u.email FROM payments p JOIN users u ON u.id=p.user_id WHERE p.status='pending' ORDER BY p.created_at ASC");
   res.json({ ok: true, payments: r.rows });
 });
 
 app.post('/api/admin/confirm', async function(req, res) {
-  if (!await checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  if (!checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   const { payment_id, user_id, plan } = req.body;
   const exp = plan === 'pro3' ? new Date(Date.now() + 90*24*60*60*1000) : null;
   try {
@@ -324,13 +315,13 @@ app.post('/api/admin/confirm', async function(req, res) {
 });
 
 app.post('/api/admin/reject', async function(req, res) {
-  if (!await checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  if (!checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   await db.query("UPDATE payments SET status='rejected' WHERE id=$1", [req.body.payment_id]);
   res.json({ ok: true });
 });
 
 app.get('/api/admin/users', async function(req, res) {
-  if (!await checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  if (!checkIsAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   const r = await db.query('SELECT id,email,plan,status,created_at FROM users ORDER BY created_at DESC LIMIT 200');
   res.json({ ok: true, users: r.rows });
 });
@@ -349,13 +340,17 @@ app.get('/', function(req, res) {
 });
 
 app.get('/dashboard', function(req, res) {
-  if (!req.session.userId) return res.redirect('/');
+  // Token comes in URL after login — if missing, send to homepage
+  const token = req.query.token || '';
+  if (!token || !tokens[token]) return res.redirect('/');
   res.sendFile(path.join(__dirname, 'pages', 'dashboard.html'));
 });
 
-app.get('/admin', async function(req, res) {
-  if (!req.session.userId) return res.redirect('/');
-  if (!await checkIsAdmin(req)) return res.redirect('/dashboard');
+app.get('/admin', function(req, res) {
+  const token = req.query.token || '';
+  if (!token || !tokens[token]) return res.redirect('/');
+  const t = tokens[token];
+  if (t.email.toLowerCase() !== adminEmail()) return res.redirect('/dashboard?token=' + token);
   res.sendFile(path.join(__dirname, 'pages', 'admin.html'));
 });
 
