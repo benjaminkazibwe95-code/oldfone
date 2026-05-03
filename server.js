@@ -47,6 +47,12 @@ async function initDB() {
       status TEXT DEFAULT 'pending',
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS auth_tokens (
+      token TEXT PRIMARY KEY,
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      email TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
     CREATE TABLE IF NOT EXISTS user_sessions (
       sid VARCHAR NOT NULL COLLATE "default",
       sess JSON NOT NULL,
@@ -71,30 +77,30 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Simple in-memory token store — bypasses ALL cookie issues on every browser/phone
-// Token is passed in URL after login, stored in the page, sent as a header on API calls
-const tokens = {}; // token -> { userId, email, created }
-
-function makeToken(userId, email) {
+// Token stored in DB — survives server restarts on Render free tier
+async function makeToken(userId, email) {
   const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Date.now().toString(36);
-  tokens[token] = { userId, email, created: Date.now() };
-  // Clean old tokens every time we make a new one
-  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  Object.keys(tokens).forEach(function(t) { if (tokens[t].created < cutoff) delete tokens[t]; });
+  await db.query(
+    'INSERT INTO auth_tokens (token, user_id, email) VALUES ($1,$2,$3)',
+    [token, userId, email]
+  );
+  // Clean tokens older than 30 days
+  await db.query("DELETE FROM auth_tokens WHERE created_at < NOW() - INTERVAL '30 days'");
   return token;
 }
 
-function requireAuth(req, res, next) {
-  const token = req.headers['x-auth-token'] || req.query.token;
-  if (!token || !tokens[token]) return res.status(401).json({ error: 'Not logged in' });
-  req.userId = tokens[token].userId;
-  req.userEmail = tokens[token].email;
-  next();
+async function lookupToken(token) {
+  if (!token) return null;
+  const r = await db.query('SELECT user_id, email FROM auth_tokens WHERE token=$1', [token]);
+  return r.rows[0] || null;
 }
 
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-function requireAuth(req, res, next) {
-  if (!req.userId) return res.status(401).json({ error: 'Not logged in' });
+async function requireAuth(req, res, next) {
+  const token = req.headers['x-auth-token'] || req.query.token;
+  const t = await lookupToken(token);
+  if (!t) return res.status(401).json({ error: 'Not logged in' });
+  req.userId = t.user_id;
+  req.userEmail = t.email;
   next();
 }
 
@@ -207,9 +213,9 @@ app.post('/form/register', async function(req, res) {
   }
 });
 
-app.post('/form/logout', function(req, res) {
+app.post('/form/logout', async function(req, res) {
   const token = req.body.token || '';
-  if (token && tokens[token]) delete tokens[token];
+  if (token) await db.query('DELETE FROM auth_tokens WHERE token=$1', [token]);
   res.redirect('/');
 });
 
@@ -339,17 +345,21 @@ app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'pages', 'index.html'));
 });
 
-app.get('/dashboard', function(req, res) {
-  // Token comes in URL after login — if missing, send to homepage
+app.get('/dashboard', async function(req, res) {
   const token = req.query.token || '';
-  if (!token || !tokens[token]) return res.redirect('/');
+  if (token) {
+    const t = await lookupToken(token);
+    if (!t) return res.redirect('/');
+  }
+  // If no token in URL, serve the page anyway — dashboard JS reads from sessionStorage
   res.sendFile(path.join(__dirname, 'pages', 'dashboard.html'));
 });
 
-app.get('/admin', function(req, res) {
+app.get('/admin', async function(req, res) {
   const token = req.query.token || '';
-  if (!token || !tokens[token]) return res.redirect('/');
-  const t = tokens[token];
+  if (!token) return res.redirect('/');
+  const t = await lookupToken(token);
+  if (!t) return res.redirect('/');
   if (t.email.toLowerCase() !== adminEmail()) return res.redirect('/dashboard?token=' + token);
   res.sendFile(path.join(__dirname, 'pages', 'admin.html'));
 });
